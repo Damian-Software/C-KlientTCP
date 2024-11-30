@@ -20,16 +20,19 @@
 int main(int argc, char* argv[])
 {
     // Initialize the network client
-    Network client("192.168.56.1", 13000);
+    Network client("192.168.24.145", 13000);
     client.connect();
 
     // Create a packet to send
     LoginPacket packet;
-    packet.account_id = 12345;
-    packet.password = "password123";
+    packet.account_id = "12345";
+
+    LoginPacketPWD packet_pwd;
+    packet_pwd.password = "password123";
 
     // Send the packet
     client.sendPacket(packet);
+    client.sendPacket(packet_pwd);
 
     // Create and send a message packet
     MessagePacket message_packet;
@@ -42,16 +45,16 @@ int main(int argc, char* argv[])
     //client.sendPacket(screen_packet);
 
     // Create and send a data packet
-    DataPacket data_packet;
-    data_packet.data = { 'H', 'e', 'l', 'l', 'o' };
-    data_packet.data_as_string = "Hello";
-    client.sendPacket(data_packet);
+    //DataPacket data_packet;
+    //data_packet.data = { 'H', 'e', 'l', 'l', 'o' };
+    //data_packet.data_as_string = "Hello";
+    //client.sendPacket(data_packet);
 
     // Create and send a test packet
-    TestPacket test_packet;
-    test_packet.test_string = "Test string";
-    test_packet.test_vector = { 1, 2, 3, 4, 5 };
-    client.sendPacket(test_packet);
+    //TestPacket test_packet;
+    //test_packet.test_string = "Test string";
+    //test_packet.test_vector = { 1, 2, 3, 4, 5 };
+    //client.sendPacket(test_packet);
 
     // Process incoming packets (this could be done in a loop (while) if needed)
     client.processIncomingPackets();

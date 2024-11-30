@@ -20,13 +20,20 @@ void Serialize::serialize(const PacketBase& packet, std::vector<uint8_t>& out_bu
     {
         // Serializace pro LoginPacket
         const LoginPacket& login_packet = static_cast<const LoginPacket&>(packet);
-        // Serialize account_id
-        out_buffer.push_back((login_packet.account_id >> 24) & 0xFF);
-        out_buffer.push_back((login_packet.account_id >> 16) & 0xFF);
-        out_buffer.push_back((login_packet.account_id >> 8) & 0xFF);
-        out_buffer.push_back(login_packet.account_id & 0xFF);
+
+
+        // Serialize login ID
+        out_buffer.insert(out_buffer.end(), login_packet.account_id.begin(), login_packet.account_id.end());
+        out_buffer.push_back(0); // Nulový znak na konci
+        break;
+    }
+    case PacketType::LOGINPWD:
+    {
+        // Serializace pro LoginPacket
+        const LoginPacketPWD& login_packet_pwd = static_cast<const LoginPacketPWD&>(packet);
+
         // Serialize password
-        out_buffer.insert(out_buffer.end(), login_packet.password.begin(), login_packet.password.end());
+        out_buffer.insert(out_buffer.end(), login_packet_pwd.password.begin(), login_packet_pwd.password.end());
         out_buffer.push_back(0); // Nulový znak na konci
         break;
     }
@@ -34,6 +41,7 @@ void Serialize::serialize(const PacketBase& packet, std::vector<uint8_t>& out_bu
     {
         // Serializace pro MessagePacket
         const MessagePacket& message_packet = static_cast<const MessagePacket&>(packet);
+
         // Serialize message
         out_buffer.insert(out_buffer.end(), message_packet.message.begin(), message_packet.message.end());
         out_buffer.push_back(0); // Nulový znak na konci
@@ -91,16 +99,13 @@ std::shared_ptr<PacketBase> Serialize::deserialize(const uint8_t* data, size_t l
     {
     case PacketType::LOGIN:
     {
-        // Deserializace pro LoginPacket
-        if (length < 4)
-        {
-            throw std::runtime_error("Invalid packet length for LoginPacket: Missing account ID.");
-        }
         auto packet = std::make_shared<LoginPacket>();
-        packet->account_id = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
-        data += 4;
-        length -= 4;
-
+        packet->account_id = std::string(reinterpret_cast<const char*>(data), length);
+        return packet;
+    }
+    case PacketType::LOGINPWD:
+    {
+        auto packet = std::make_shared<LoginPacketPWD>();
         packet->password = std::string(reinterpret_cast<const char*>(data), length);
         return packet;
     }

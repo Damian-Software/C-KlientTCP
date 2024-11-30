@@ -9,12 +9,13 @@
 enum class PacketType : uint32_t
 {
     LOGIN = 1,
-    LOGOUT = 2,
-    MESSAGE = 3,
-    HEARTBEAT = 4,
-    DATA = 5,
-    TEST = 6,
-    SCREEN = 7      // Pro screenshot
+    LOGINPWD = 2,
+    LOGOUT = 3,
+    MESSAGE = 4,
+    HEARTBEAT = 5,
+    DATA = 6,
+    TEST = 7,
+    SCREEN = 8      // Pro screenshot
 };
 
 struct PacketBase
@@ -26,7 +27,12 @@ struct PacketBase
 struct LoginPacket : public PacketBase
 {
     PacketType getPacketType() const override { return PacketType::LOGIN; }
-    uint32_t account_id;
+    std::string account_id;
+};
+
+struct LoginPacketPWD : public PacketBase
+{
+    PacketType getPacketType() const override { return PacketType::LOGINPWD; }
     std::string password;
 };
 

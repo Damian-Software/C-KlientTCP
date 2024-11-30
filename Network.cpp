@@ -91,6 +91,12 @@ void Network::handleRead()
                 std::cout << "Received login packet with account ID: " << login_packet->account_id << std::endl;
                 break;
             }
+            case PacketType::LOGINPWD:
+            {
+                auto login_packet_pwd = std::static_pointer_cast<LoginPacketPWD>(packet);
+                std::cout << "Recived login packet with account password: " << login_packet_pwd->password << std::endl;
+                break;
+            }
             case PacketType::MESSAGE:
             {
                 auto message_packet = std::static_pointer_cast<MessagePacket>(packet);
