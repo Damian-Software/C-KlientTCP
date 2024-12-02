@@ -30,31 +30,17 @@ int main(int argc, char* argv[])
     LoginPacketPWD packet_pwd;
     packet_pwd.password = "password123";
 
+    // Create and send a message packet
+    MessagePacket message_packet;
+    message_packet.message = "POZDRAV";
+
     // Send the packet
     client.sendPacket(packet);
     client.sendPacket(packet_pwd);
-
-    // Create and send a message packet
-    MessagePacket message_packet;
-    message_packet.message = "Ahoj svete";
     client.sendPacket(message_packet);
 
-    //std::vector<uint8_t> screenshot_data = takeScreenshot();  // Funkce pro získání screenshotu
-    //ScreenPacket screen_packet;
-    //screen_packet.screen_data = screenshot_data;
-    //client.sendPacket(screen_packet);
 
-    // Create and send a data packet
-    //DataPacket data_packet;
-    //data_packet.data = { 'H', 'e', 'l', 'l', 'o' };
-    //data_packet.data_as_string = "Hello";
-    //client.sendPacket(data_packet);
 
-    // Create and send a test packet
-    //TestPacket test_packet;
-    //test_packet.test_string = "Test string";
-    //test_packet.test_vector = { 1, 2, 3, 4, 5 };
-    //client.sendPacket(test_packet);
 
     // Process incoming packets (this could be done in a loop (while) if needed)
     client.processIncomingPackets();

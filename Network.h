@@ -4,6 +4,9 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <thread>
+#include <unordered_map>
+#include <mutex>
 #include "Packet.h"
 #include "ReadData.h"
 #include "SendData.h"

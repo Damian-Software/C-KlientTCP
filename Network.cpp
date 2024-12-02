@@ -76,61 +76,114 @@ void Network::processIncomingPackets()
 
 void Network::handleRead()
 {
-    uint8_t buffer[1024];
+    static std::vector<uint8_t> client_buffer; // Buffer pro uchování neúplných dat
+
+    uint8_t buffer[4096];
     int bytes_read = recv(socket_fd, reinterpret_cast<char*>(buffer), static_cast<int>(sizeof(buffer)), 0);
+
     if (bytes_read > 0)
     {
-        try
+        // Pøidejte nová data do bufferu
+        client_buffer.insert(client_buffer.end(), buffer, buffer + bytes_read);
+
+        // Zpracování všech kompletních paketù v bufferu
+        while (client_buffer.size() >= 4)
         {
-            std::shared_ptr<PacketBase> packet = Serialize::deserialize(buffer, bytes_read);
-            switch (packet->getPacketType())
-            {
-            case PacketType::LOGIN:
-            {
-                auto login_packet = std::static_pointer_cast<LoginPacket>(packet);
-                std::cout << "Received login packet with account ID: " << login_packet->account_id << std::endl;
+            // Získání typu paketu (4 bajty)
+            PacketType packet_type = static_cast<PacketType>((client_buffer[0] << 24) | (client_buffer[1] << 16) | (client_buffer[2] << 8) | client_buffer[3]);
+
+            // Pøesuòte ukazatel za hlavièku typu
+            size_t header_size = 4;
+
+            // Zjištìní, zda máme dostatek dat pro zjistìní délky obsahu
+            if (client_buffer.size() < header_size + 4) {
+                // Poèkejte na další data, protože nemáme kompletní hlavièku a délku dat
                 break;
             }
-            case PacketType::LOGINPWD:
-            {
-                auto login_packet_pwd = std::static_pointer_cast<LoginPacketPWD>(packet);
-                std::cout << "Recived login packet with account password: " << login_packet_pwd->password << std::endl;
+
+            // Získání délky obsahu paketu (následující 4 bajty po hlavièce)
+            size_t additional_length = (client_buffer[4] << 24) | (client_buffer[5] << 16) | (client_buffer[6] << 8) | client_buffer[7];
+            size_t expected_length = header_size + 4 + additional_length;
+
+            // Zkontrolujte, zda máme dostatek dat pro kompletní paket
+            if (client_buffer.size() < expected_length) {
+                // Poèkejte na další data, protože paket není kompletní
                 break;
             }
-            case PacketType::MESSAGE:
+
+            // Pokud máme kompletní paket, zpracujeme ho
+            try
             {
-                auto message_packet = std::static_pointer_cast<MessagePacket>(packet);
-                std::cout << "Received message: " << message_packet->message << std::endl;
-                break;
-            }
-            case PacketType::DATA:
-            {
-                auto data_packet = std::static_pointer_cast<DataPacket>(packet);
-                std::cout << "Received data: " << std::string(data_packet->data.begin(), data_packet->data.end()) << std::endl;
-                break;
-            }
-            case PacketType::TEST:
-            {
-                auto test_packet = std::static_pointer_cast<TestPacket>(packet);
-                std::cout << "Received test string: " << test_packet->test_string << std::endl;
-                std::cout << "Received test vector: ";
-                for (int value : test_packet->test_vector)
-                {
-                    std::cout << value << " ";
+                std::shared_ptr<PacketBase> packet = Serialize::deserialize(client_buffer.data(), expected_length);
+
+                // Výpis pro kontrolu kompletního paketu
+                std::cout << "Processed raw data for packet type: ";
+                for (size_t i = 0; i < expected_length; ++i) {
+                    std::cout << std::hex << static_cast<int>(client_buffer[i]) << " ";
                 }
-                std::cout << std::endl;
-                break;
+                std::cout << std::dec << std::endl;
+
+                // Zpracujte paket podle jeho typu
+                switch (packet->getPacketType())
+                {
+                case PacketType::LOGIN:
+                {
+                    auto login_packet = std::static_pointer_cast<LoginPacket>(packet);
+                    std::cout << "Received login ID: " << login_packet->account_id << std::endl;
+                    break;
+                }
+                case PacketType::LOGINPWD:
+                {
+                    auto login_packet_pwd = std::static_pointer_cast<LoginPacketPWD>(packet);
+                    std::cout << "Received login password: " << login_packet_pwd->password << std::endl;
+                    break;
+                }
+                case PacketType::MESSAGE:
+                {
+                    auto message_packet = std::static_pointer_cast<MessagePacket>(packet);
+                    std::cout << "Received message: " << message_packet->message << std::endl;
+                    break;
+                }
+                default:
+                    std::cerr << "Unknown packet type received." << std::endl;
+                    break;
+                }
+
+                // Odstraòte kompletnì zpracovaný paket z bufferu
+                client_buffer.erase(client_buffer.begin(), client_buffer.begin() + expected_length);
+
             }
-            // Další typy paketù mohou být pøidány zde
-            default:
-                std::cerr << "Unknown packet type received." << std::endl;
-                break;
+            catch (const std::exception& e)
+            {
+                std::cerr << "Failed to deserialize packet: " << e.what() << std::endl;
+                // Vyèistìte buffer pouze pøi kritické chybì deserializace
+                client_buffer.clear();
+                return;
+            }
+
+            // Výpis zbývajících dat po vymazání z bufferu
+            if (!client_buffer.empty()) {
+                std::cout << "Remaining data in buffer after erasing: ";
+                for (auto b : client_buffer) {
+                    std::cout << std::hex << static_cast<int>(b) << " ";
+                }
+                std::cout << std::dec << std::endl;
             }
         }
-        catch (const std::exception& e)
-        {
-            std::cerr << "Failed to deserialize packet: " << e.what() << std::endl;
-        }
+    }
+    else if (bytes_read == 0)
+    {
+        // Pøipojení bylo èistì uzavøeno na druhé stranì
+        std::cerr << "Connection closed by server." << std::endl;
+        closesocket(socket_fd);
+        socket_fd = INVALID_SOCKET;
+    }
+    else
+    {
+        // Chyba pøi ètení dat
+        std::cerr << "Failed to read data." << std::endl;
+        closesocket(socket_fd);
+        socket_fd = INVALID_SOCKET;
     }
 }
 
