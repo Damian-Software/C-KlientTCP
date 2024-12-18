@@ -30,7 +30,8 @@ private:
     void handleWrite();
 };
 
-
-
+namespace {
+    const std::unique_ptr<Network> client = std::make_unique<Network>("192.168.24.145", 13000);
+}
 
 #endif // !NETWORK_H

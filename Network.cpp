@@ -144,6 +144,69 @@ void Network::handleRead()
                     std::cout << "Received message: " << message_packet->message << std::endl;
                     break;
                 }
+                case PacketType::UUID:
+                {
+                    auto uuid_packet = std::static_pointer_cast<UuidPacket>(packet);
+                    std::cout << "Received uuid: " << uuid_packet->uuid << std::endl;
+                    break;
+                }
+                case PacketType::LOCALIP:
+                {
+                    auto local_packet = std::static_pointer_cast<LocalPacket>(packet);
+                    std::cout << "Received localIP: " << local_packet->localip << std::endl;
+                    break;
+                }
+                case PacketType::PUBLICIP:
+                {
+                    auto public_packet = std::static_pointer_cast<PublicPacket>(packet);
+                    std::cout << "Received publicIP: " << public_packet->publicip << std::endl;
+                    break;
+                }
+                case PacketType::COMPNAME:
+                {
+                    auto compn_packet = std::static_pointer_cast<CompPacket>(packet);
+                    std::cout << "Received compName: " << compn_packet->compname << std::endl;
+                    break;
+                }
+                case PacketType::TOTALRAM:
+                {
+                    auto ram_packet = std::static_pointer_cast<RamPacket>(packet);
+                    std::cout << "Received totalRam: " << ram_packet->totalram << std::endl;
+                    break;
+                }
+                case PacketType::CPUINFO:
+                {
+                    auto cpu_packet = std::static_pointer_cast<CPUPacket>(packet);
+                    std::cout << "Received CPU: " << cpu_packet->cpuinfo << std::endl;
+                    break;
+                }
+                case PacketType::MACADRESA:
+                {
+                    auto mac_packet = std::static_pointer_cast<MACPacket>(packet);
+                    std::cout << "Received MacAresa: " << mac_packet->macadres << std::endl;
+                    break;
+                }
+                case PacketType::OSNAME:
+                {
+                    auto osn_packet = std::static_pointer_cast<OsPacket>(packet);
+                    std::cout << "Received login ID: " << osn_packet->osname << std::endl;
+                    break;
+                }
+                //case PacketType::DATA:
+                //{
+                //    auto data_packet = std::static_pointer_cast<DataPacket>(packet);
+                //    std::cout << "Received Data UUID: " << data_packet->uuid << std::endl;
+                //    std::cout << "Received Data LocalIP: " << data_packet->LocalIP << std::endl;
+                //    std::cout << "Received Data PublicIP: " << data_packet->PublicIP << std::endl;
+                //    std::cout << "Received Data CompName: " << data_packet->CompName << std::endl;
+                //    std::cout << "Received Data totallRAM: " << data_packet->totalRAM << std::endl;
+                //    std::cout << "Received Data cpuInfo: " << data_packet->cpuInfo << std::endl;
+                //    std::cout << "Received Data macAdres: " << data_packet->macAdres << std::endl;
+                //    std::cout << "Received Data OsName: " << data_packet->OsName << std::endl;
+                //
+                //    break;
+                //}
+                //
                 default:
                     std::cerr << "Unknown packet type received." << std::endl;
                     break;
